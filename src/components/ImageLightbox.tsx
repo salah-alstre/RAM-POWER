@@ -55,7 +55,6 @@ export default function ImageLightbox({
         <button
           type="button"
           onClick={onClose}
-          autoFocus
           className="absolute -top-4 left-1/2 z-10 -translate-x-1/2 -translate-y-full rounded-full bg-pearl p-2.5 text-charcoal shadow-lg transition-transform duration-150 hover:scale-105 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange sm:left-auto sm:right-0 sm:top-0 sm:translate-x-0 sm:-translate-y-0"
         >
           <span className="sr-only">سكّر</span>

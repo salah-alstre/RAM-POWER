@@ -34,12 +34,16 @@ export interface SocialLink {
   href: string;
 }
 
-// حساب TikTok الوحيد الموثّق في المرجع. لا تُضف إنستغرام أو فيسبوك دون رابط فعلي مؤكد.
 export const socialLinks: SocialLink[] = [
   {
     id: "tiktok",
     label: "TikTok",
     href: "https://www.tiktok.com/@rampower_energy",
+  },
+  {
+    id: "instagram",
+    label: "Instagram",
+    href: "https://www.instagram.com/rampower_energydrink",
   },
 ];
 

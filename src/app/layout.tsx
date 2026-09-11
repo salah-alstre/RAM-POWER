@@ -13,6 +13,26 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: copy.meta.title,
   description: copy.meta.description,
+  openGraph: {
+    title: copy.meta.title,
+    description: copy.meta.description,
+    locale: "ar_PS",
+    type: "website",
+    images: [
+      {
+        url: "/images/ram/ram-hero.png",
+        width: 1536,
+        height: 1024,
+        alt: copy.meta.ogAlt,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: copy.meta.title,
+    description: copy.meta.description,
+    images: ["/images/ram/ram-hero.png"],
+  },
 };
 
 export default function RootLayout({
@@ -24,7 +44,7 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" className={cairo.variable}>
       <body className="font-arabic antialiased">
         <a href="#main-content" className="skip-link">
-          تخطي إلى المحتوى
+          {copy.skipLink}
         </a>
         {children}
       </body>

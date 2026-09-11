@@ -16,7 +16,7 @@ const POSTER = "/images/ram/ram-ocean-poster.jpg";
  * لخلق انتقال بصري ناعم من خلفية الفيديو الداكنة إلى القسم الفاتح التالي،
  * بدل قطع مفاجئ بين القسمين.
  */
-export default function HeroOceanScene() {
+export default function HeroOceanScene({ paused = false }: { paused?: boolean }) {
   const { ref, active, reducedMotion } = useAnimationGate<HTMLDivElement>();
   const videoRef = useRef<HTMLVideoElement>(null);
   const exitOverlayRef = useRef<HTMLDivElement>(null);
@@ -24,14 +24,14 @@ export default function HeroOceanScene() {
   useEffect(() => {
     const video = videoRef.current;
     if (!video || reducedMotion) return;
-    if (active) {
+    if (active && !paused) {
       video.play().catch(() => {
         // بعض المتصفحات ترفض التشغيل التلقائي؛ الصورة الثابتة (poster) تبقى ظاهرة بدل خطأ.
       });
     } else {
       video.pause();
     }
-  }, [active, reducedMotion]);
+  }, [active, paused, reducedMotion]);
 
   useLayoutEffect(() => {
     const root = ref.current;
@@ -62,7 +62,12 @@ export default function HeroOceanScene() {
   }, []);
 
   return (
-    <div ref={ref} className="absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div
+      ref={ref}
+      className="absolute inset-0 overflow-hidden"
+      aria-hidden="true"
+      data-motion-paused={paused || !active}
+    >
       {reducedMotion ? (
         <img
           src={POSTER}

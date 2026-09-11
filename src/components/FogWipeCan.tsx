@@ -55,7 +55,8 @@ export default function FogWipeCan() {
   const sizeRef = useRef({ w: 0, h: 0 });
   const dprRef = useRef(1);
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const renderRafRef = useRef<number | null>(null);
+  const revealRafRef = useRef<number | null>(null);
   const dropletsRef = useRef<Droplet[]>([]);
   const startRef = useRef(performance.now());
   const readyRef = useRef(false);
@@ -70,6 +71,12 @@ export default function FogWipeCan() {
     const handler = (e: MediaQueryListEvent) => setIsTouchDevice(!e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (revealRafRef.current) cancelAnimationFrame(revealRafRef.current);
+    };
   }, []);
 
   // بناء نسيج الضباب مرة واحدة لكل حجم (يُعاد إنشاؤه فقط عند تغيّر الأبعاد)
@@ -198,7 +205,7 @@ export default function FogWipeCan() {
       mctx.scale(dprRef.current, dprRef.current);
 
       if (t < 1) {
-        rafRef.current = requestAnimationFrame(step);
+        revealRafRef.current = requestAnimationFrame(step);
       } else {
         mctx.setTransform(1, 0, 0, 1, 0, 0);
         mctx.clearRect(0, 0, mask.width, mask.height);
@@ -206,7 +213,8 @@ export default function FogWipeCan() {
         setRevealed(true);
       }
     };
-    rafRef.current = requestAnimationFrame(step);
+    if (revealRafRef.current) cancelAnimationFrame(revealRafRef.current);
+    revealRafRef.current = requestAnimationFrame(step);
   }, [reducedMotion]);
 
   // إعداد/إعادة إعداد اللوحات عند تغيّر الحجم
@@ -319,21 +327,21 @@ export default function FogWipeCan() {
       ctx.globalCompositeOperation = "destination-in";
       ctx.drawImage(mask, 0, 0, w, h);
 
-      rafRef.current = requestAnimationFrame(render);
+      renderRafRef.current = requestAnimationFrame(render);
     };
 
     if (active) {
-      rafRef.current = requestAnimationFrame(render);
+      renderRafRef.current = requestAnimationFrame(render);
     } else {
       // ارسم إطارًا ثابتًا واحدًا فقط ليبقى المحتوى ظاهرًا دون تشغيل حلقة الرسم
       render();
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
+      if (renderRafRef.current) cancelAnimationFrame(renderRafRef.current);
+      renderRafRef.current = null;
     }
 
     return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
+      if (renderRafRef.current) cancelAnimationFrame(renderRafRef.current);
+      renderRafRef.current = null;
     };
   }, [active, revealed, reducedMotion, canvasReady]);
 
@@ -385,7 +393,7 @@ export default function FogWipeCan() {
     lastPointRef.current = null;
   };
 
-  // هاتف: المسح مباشرة باللمس؛ touch-action يمنع تمرير الصفحة داخل مساحة الضباب.
+  // هاتف: المسح مباشرة باللمس بلا أي زر تفعيل؛ touch-action يمنع تمرير الصفحة داخل مساحة الضباب.
   const onTouchMove = (e: React.TouchEvent) => {
     if (revealed) return;
     const t = e.touches[0];
@@ -398,6 +406,8 @@ export default function FogWipeCan() {
   };
 
   function resetFog() {
+    if (revealRafRef.current) cancelAnimationFrame(revealRafRef.current);
+    revealRafRef.current = null;
     gridRef.current = new Uint8Array(GRID_COLS * GRID_ROWS);
     revealedCellsRef.current = 0;
     lastPointRef.current = null;
@@ -425,7 +435,7 @@ export default function FogWipeCan() {
           aria-hidden="true"
           className="absolute inset-0"
           style={{
-            touchAction: !revealed && canvasReady ? "none" : "auto",
+            touchAction: !revealed && canvasReady ? "none" : "pan-y",
             cursor: !isTouchDevice && !revealed ? "crosshair" : "default",
           }}
           onMouseMove={onMouseMove}
@@ -443,13 +453,9 @@ export default function FogWipeCan() {
         )}
 
         {!revealed && isTouchDevice && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-3 flex justify-center">
-            <p
-              className="rounded-full bg-orange px-4 py-2 text-xs font-bold text-charcoal shadow-lg"
-            >
-              {copy.coldCan.tryWipe}
-            </p>
-          </div>
+          <p className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-charcoal/60 px-3 py-1 text-[11px] font-semibold text-pearl/90 backdrop-blur-sm">
+            {copy.coldCan.hintTouch}
+          </p>
         )}
 
         {revealed && (

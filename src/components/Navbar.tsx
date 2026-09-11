@@ -3,10 +3,15 @@
 import { useEffect, useState } from "react";
 import { navLinks } from "@/data/nav";
 import { copy } from "@/data/copy";
+import { useBodyScrollLock } from "@/hooks/useBodyScrollLock";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeHref, setActiveHref] = useState("#home");
+  useBodyScrollLock(menuOpen);
+  const mobileMenuRef = useFocusTrap(menuOpen);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -23,6 +28,37 @@ export default function Navbar() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
+
+  useEffect(() => {
+    const sections = navLinks
+      .map((link) => document.querySelector<HTMLElement>(link.href))
+      .filter((section): section is HTMLElement => section !== null);
+    if (sections.length === 0 || typeof IntersectionObserver === "undefined") return;
+
+    const visible = new Map<string, number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visible.set(`#${entry.target.id}`, entry.intersectionRatio);
+          else visible.delete(`#${entry.target.id}`);
+        });
+        const next = [...visible.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
+        if (next) setActiveHref(next);
+      },
+      { rootMargin: "-18% 0px -62% 0px", threshold: [0, 0.15, 0.4, 0.7] }
+    );
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const closeDesktop = (event: MediaQueryListEvent) => {
+      if (event.matches) setMenuOpen(false);
+    };
+    mq.addEventListener("change", closeDesktop);
+    return () => mq.removeEventListener("change", closeDesktop);
+  }, []);
 
   return (
     <header
@@ -50,7 +86,12 @@ export default function Navbar() {
             <li key={link.href}>
               <a
                 href={link.href}
-                className="text-sm font-semibold text-pearl/90 transition-colors hover:text-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange"
+                aria-current={activeHref === link.href ? "location" : undefined}
+                className={`relative py-2 text-sm font-semibold transition-colors after:absolute after:inset-x-0 after:bottom-0 after:h-px after:origin-right after:bg-orange after:transition-transform hover:text-orange focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange ${
+                  activeHref === link.href
+                    ? "text-orange after:scale-x-100"
+                    : "text-pearl/82 after:scale-x-0"
+                }`}
               >
                 {link.label}
               </a>
@@ -87,8 +128,10 @@ export default function Navbar() {
       </nav>
 
       <div
+        ref={mobileMenuRef}
         id="mobile-menu"
         className={`md:hidden ${menuOpen ? "block" : "hidden"} border-t border-white/5 bg-charcoal/98 backdrop-blur-md`}
+        tabIndex={-1}
       >
         <ul className="flex flex-col gap-1 px-4 py-4">
           {navLinks.map((link) => (
@@ -96,7 +139,12 @@ export default function Navbar() {
               <a
                 href={link.href}
                 onClick={() => setMenuOpen(false)}
-                className="block rounded-lg px-3 py-3 text-base font-semibold text-pearl/90 transition-colors hover:bg-white/5 hover:text-orange"
+                aria-current={activeHref === link.href ? "location" : undefined}
+                className={`block rounded-xl px-3 py-3 text-base font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-orange ${
+                  activeHref === link.href
+                    ? "bg-orange/10 text-orange"
+                    : "text-pearl/90 hover:bg-white/5 hover:text-orange"
+                }`}
               >
                 {link.label}
               </a>
@@ -106,7 +154,7 @@ export default function Navbar() {
             <a
               href="#agents"
               onClick={() => setMenuOpen(false)}
-              className="block rounded-lg bg-orange px-3 py-3 text-center text-base font-bold text-charcoal"
+              className="block rounded-lg bg-orange px-3 py-3 text-center text-base font-bold text-charcoal focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-pearl"
             >
               {copy.nav.findAgent}
             </a>

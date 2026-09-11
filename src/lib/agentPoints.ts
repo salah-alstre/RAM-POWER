@@ -1,5 +1,5 @@
 import { agents, type Agent } from "@/data/agents";
-import { regionById, regionLabel } from "@/data/regions";
+import { regionById, regionLabel, type Region } from "@/data/regions";
 
 // مصدر بيانات موحّد للخريطة والقائمة: نقطة واحدة لكل (وكيل × منطقة لها
 // مركز موثّق). إن خدم وكيل عدة مناطق، تُنشأ نقطة لكل منطقة منها على حدة
@@ -13,6 +13,9 @@ export interface AgentPoint {
   lat: number;
   lng: number;
   anchorTown: string;
+  pointType: "service-area-center";
+  precision: "municipality-center";
+  coordinateSource?: Region["coordinateSource"];
 }
 
 export const agentPoints: AgentPoint[] = agents.flatMap((agent) =>
@@ -27,6 +30,9 @@ export const agentPoints: AgentPoint[] = agents.flatMap((agent) =>
         lat: region.center.lat,
         lng: region.center.lng,
         anchorTown: region.anchorTown ?? regionLabel(regionId),
+        pointType: "service-area-center",
+        precision: "municipality-center",
+        coordinateSource: region.coordinateSource,
       },
     ];
   })

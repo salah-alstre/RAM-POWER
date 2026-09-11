@@ -4,19 +4,55 @@ import { telHref, waHref } from "@/lib/phone";
 import { copy } from "@/data/copy";
 import CopyButton from "./CopyButton";
 
-export default function AgentCard({ agent }: { agent: Agent }) {
+export default function AgentCard({
+  agent,
+  selected = false,
+  onSelect,
+}: {
+  agent: Agent;
+  selected?: boolean;
+  onSelect?: () => void;
+}) {
   return (
-    <article className="group flex flex-col justify-between rounded-2xl border border-charcoal/8 bg-white p-6 shadow-[0_10px_30px_-18px_rgba(16,16,16,0.25)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-orange/50 hover:shadow-[0_18px_40px_-18px_rgba(16,16,16,0.3)]">
+    <article
+      id={`agent-card-${agent.id}`}
+      data-selected={selected || undefined}
+      className={`group flex flex-col justify-between rounded-2xl border bg-white p-5 shadow-[0_10px_30px_-18px_rgba(16,16,16,0.25)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-orange/50 hover:shadow-[0_18px_40px_-18px_rgba(16,16,16,0.3)] ${
+        selected
+          ? "border-orange ring-2 ring-orange/25"
+          : "border-charcoal/8"
+      }`}
+    >
       <div>
-        <div className="flex flex-wrap gap-1.5">
-          {agent.regionIds.map((id) => (
-            <span
-              key={id}
-              className="rounded-full bg-orange/10 px-2.5 py-1 text-[11px] font-bold text-orange-dark"
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex flex-wrap gap-1.5">
+            {agent.regionIds.map((id) => (
+              <span
+                key={id}
+                className="rounded-full bg-orange/10 px-2.5 py-1 text-[11px] font-bold text-orange-dark"
+              >
+                {regionLabel(id)}
+              </span>
+            ))}
+          </div>
+          {onSelect ? (
+            <button
+              type="button"
+              onClick={onSelect}
+              aria-pressed={selected}
+              aria-label={`اعرض ${agent.company ?? agent.name} على الخريطة`}
+              className={`flex h-9 w-9 flex-none items-center justify-center rounded-full border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-dark ${
+                selected
+                  ? "border-charcoal bg-charcoal text-orange"
+                  : "border-charcoal/12 text-charcoal/55 hover:border-orange hover:text-orange-dark"
+              }`}
             >
-              {regionLabel(id)}
-            </span>
-          ))}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 21s6-5.5 6-11a6 6 0 1 0-12 0c0 5.5 6 11 6 11Z" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="12" cy="10" r="2" stroke="currentColor" strokeWidth="1.8" />
+              </svg>
+            </button>
+          ) : null}
         </div>
 
         <h3 className="mt-3 text-lg font-extrabold text-charcoal">
