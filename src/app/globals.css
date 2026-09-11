@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #101010;
+  color: #f5f4f0;
+}
+
+section[id] {
+  scroll-margin-top: 84px;
+}
+
+::selection {
+  background-color: #f36b21;
+  color: #101010;
+}
+
+.skip-link {
+  position: absolute;
+  right: 1rem;
+  top: -100px;
+  background: #f36b21;
+  color: #101010;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  z-index: 100;
+  transition: top 0.2s ease;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+.hero-can-float {
+  animation: hero-can-float 7s ease-in-out infinite;
+}
+
+@keyframes hero-can-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.4deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1.4deg);
+  }
+}
+
+/* طفو خفيف مستمر لكلمة RAM بعد انتهاء الدخول — سعة أصغر واتجاه مختلف عن
+   طفو العلبة (hero-can-float) لإعطاء إحساس بالعمق بين الطبقتين */
+.ram-idle {
+  animation: ram-idle 9s ease-in-out infinite;
+}
+
+@keyframes ram-idle {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(6px) translateX(-4px);
+  }
+}
+
+/* انتقال خفيف عند تغيّر الفلتر/البحث في دليل الوكلاء — CSS بحت (لا يبطئ الكتابة) */
+@keyframes agent-grid-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-motion-paused="true"] .hero-can-float,
+[data-motion-paused="true"] .ram-idle {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
